@@ -103,7 +103,7 @@ def memory():
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
 
-    ret["procs"] = sorted(ret["procs"], key=lambda procObj: procObj["mem_pct"], reverse=True)[:5]
+    ret["procs"] = sorted(ret["procs"], key=lambda procObj: procObj["mem_pct"], reverse=True)[:20]
 
     html = render_template(
         basedir + "/jinja/top.j2",
@@ -118,7 +118,7 @@ def memory():
 def cpu():
     """returns CPU usage per process"""
     ret = {}
-    cmd = "ps -efl --sort=-pcpu | head -n 6"
+    cmd = "ps -efl --sort=-pcpu | head -n 21"
     state_code = {
         "S": "Sleep",
         "D": "I/O wait",
