@@ -20,6 +20,11 @@ formatter = logging.Formatter("%(module)s.%(funcName)s: [%(levelname)s] %(messag
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
+# Create Gmail's App Password
+# Once created fill in the email_password here
+email_username = "user@gmail.com"
+email_password = "12345"
+
 
 def send_email(to_addr, from_addr, cc=None, bcc=None, subject=None, body=None):
 
@@ -43,19 +48,30 @@ def send_email(to_addr, from_addr, cc=None, bcc=None, subject=None, body=None):
 
     msg.attach(MIMEText(body, "html"))
     try:
-        server = smtplib.SMTP("localhost")
+        # Connect to the Gmail SMTP server and set SMTP to use TLS
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.ehlo()  # Can be omitted
+        server.starttls()
+        server.ehlo()  # Can be omitted
+
+        # Login to Gmail
+        if email_username and email_password:
+            server.login(email_username, email_password)
+        else:
+            log.error("SMTP authentication error: Username and Password required")
+            return "error"
+
+        # Send the email
+        server.sendmail(from_addr, to_list, msg.as_string())
     except smtplib.SMTPAuthenticationError as e:
         log.error("Error authetnicating to SMTP server: %s, exiting.., %s" % (str(e)))
         return "error"
-    except socket.timeout:
-        log.error("SMTP login timeout")
-        return "error"
-
-    try:
-        server.sendmail(from_addr, to_list, msg.as_string())
     except smtplib.SMTPException as e:
         log.error("Error sending email")
         log.error(str(e))
+    except socket.timeout:
+        log.error("SMTP login timeout")
+        return "error"
     finally:
         server.quit()
 
